@@ -13,6 +13,10 @@ app.use(bodyParser.json());
 
 app.use('/api/v1', router);
 
+app.get('/', (req, res) => {
+  res.status(200).send('<h1>Server is active</h1>')
+})
+
 app.listen(PORT, () => {
   console.log('server live on port:', PORT);
 });
