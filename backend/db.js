@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const { model, Schema} = require('mongoose');
+require('dotenv').config();
 
 // Database connection
-mongoose.connect('mongodb+srv://user_1122:1122@0123.hgnbueb.mongodb.net/?retryWrites=true&w=majority&appName=0123', {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   dbName: 'paytm'
