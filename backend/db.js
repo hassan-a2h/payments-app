@@ -13,7 +13,7 @@ mongoose.connect(process.env.MONGO_URI, {
     console.log('MongoDB connection failed, full error - ' + err);
   });
 
-// User schema and model creation
+// Schemas
 const userSchema = new Schema({
   name: {
     type: String,
@@ -40,7 +40,22 @@ const userSchema = new Schema({
   }
 });
 
-const User = model('User', userSchema);
+const accountSchema = new Schema({
+  balance: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  user: {
+    type: ObjectId,
+    ref: 'User',
+    required: true,
+  }
+});
 
-module.exports = User;
+// Model creation
+const User = model('User', userSchema);
+const Account = model('Account', accountSchema);
+
+module.exports = { User, Account };
 
