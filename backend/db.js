@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { model, Schema} = require('mongoose');
+const { model, Schema } = require('mongoose');
 require('dotenv').config();
 
 // Database connection
@@ -47,7 +47,7 @@ const accountSchema = new Schema({
     default: 0
   },
   user: {
-    type: ObjectId,
+    type: Schema.ObjectId,
     ref: 'User',
     required: true,
   }
