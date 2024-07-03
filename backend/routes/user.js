@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { z } = require('zod');
-const User = require('../db');
+const { User, Account } = require('../db');
 const jwt = require('jsonwebtoken');
 const authCheck = require('../middleware');
 require('dotenv').config();
@@ -92,39 +92,75 @@ router.post('/signin', async (req, res) => {
 });
 
 router.post('/signup', async (req, res) => {
-  const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-  console.log(`name: ${name} email: ${email} password: ${password}`);
-
-  if (!userSignupSchema.safeParse({ name, email, password }).success) {
-    return res.status(400).send({
-      message: 'Invalid user data'
+    console.log(`name: ${name} email: ${email} password: ${password}`);
+  
+    if (!userSignupSchema.safeParse({ name, email, password }).success) {
+      return res.status(400).send({
+        message: 'Invalid user data'
+      });
+    }
+  
+    const user = await User.findOne({ email: email });
+  
+    console.log('Signup route, Already found user in DB:', user);
+  
+    if (user) {
+      return res.status(400).send({
+        message: 'User already exists'
+      });
+    }
+  
+    const newUser = await User.create({
+      name: name,
+      email: email,
+      password: password
     });
-  }
 
-  const user = await User.findOne({ email: email });
-
-  console.log('value of user', user);
-
-  if (user) {
-    return res.status(400).send({
-      message: 'User already exists'
+    const account = await Account.create({
+      user: newUser,
+      balance: Math.ceil(Math.random() * 9999)
     });
+  
+    if (newUser && account) {
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+  
+      res
+        .status(200)
+        .send({ message: 'User created successfully',
+          token: token });
+    }
+  } catch(err) {
+    console.log('Sign up route crashed, full error - ', err);
+    return res
+      .status(500)
+      .json({ message: 'Server Crashed!'});
   }
+});
 
-  const newUser = await User.create({
-    name: name,
-    email: email,
-    password: password
-  });
+router.get('/bulk', async (req, res) => {
+  const { name, email } = req.query;
 
-  if (newUser) {
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
-    res
-      .status(200)
-      .send({ message: 'User created successfully',
-        token: token });
-  }
+  const query = {};
+
+  if (name) query.name = name;
+  if (email) query.email = email;
+
+  console.log('query:', query);
+
+  const users = await User.find(query);
+
+  if (users.length > 0) {
+    return res
+    .status(200)
+    .send({ users });
+  } 
+
+  return res
+    .status(400)
+    .send({ message: 'No users found' });
 });
 
 module.exports = router;
