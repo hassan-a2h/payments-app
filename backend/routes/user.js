@@ -29,12 +29,6 @@ const userUpdateSchema = z.object({
 router.put('/', authCheck, async (req, res) => {
   const { name, password } = req.body;
 
-  // if (!userUpdateSchema.safeParse({ name, password }).success) {
-  //   return res.status(400).send({
-  //     message: 'Invalid user data'
-  //   });
-  // }
-
   const { id } = jwt.verify(req.cookies.Authorization.split(' ')[1], process.env.JWT_SECRET);
 
   const updateFields = {};
@@ -140,7 +134,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-router.get('/bulk', async (req, res) => {
+router.get('/bulk', authCheck, async (req, res) => {
   const { name, email } = req.query;
 
   const query = {};
