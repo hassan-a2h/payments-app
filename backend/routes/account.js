@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const jwt = require('jsonwebtoken');
+const { startSession } = require('mongoose');
 require('dotenv').config();
 
 const { Account } = require('../db');
@@ -38,10 +39,15 @@ router.post('/transfer', async (req, res) => {
   const { id } = jwt.verify(token, process.env.JWT_SECRET);
 
   try {
-    const senderAccount = await Account.findOne({ user: id });
-    const receiverAccount = await Account.findOne({ user: user });
+    //  use mongoose transcation to transfer funds
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    const senderAccount = await Account.findOne({ user: id }).session(session);
+    const receiverAccount = await Account.findOne({ user: user }).session(session);
 
     if (!senderAccount || !receiverAccount || senderAccount.balance < amount) {
+      await session.abortTransaction();
       return res
         .status(400)
         .json({ 
@@ -52,14 +58,20 @@ router.post('/transfer', async (req, res) => {
     const roundedAmount = Math.floor(amount);
     senderAccount.balance -= roundedAmount;
     receiverAccount.balance += roundedAmount;
-    await senderAccount.save();
-    await receiverAccount.save();
+    await senderAccount.save({ session });
+    await receiverAccount.save({ session });
+
+    await session.commitTransaction();
 
     return res
       .status(200)
       .json({ message: `${roundedAmount} transferred to ${user} successfully` });
   } catch(err) {
     console.log('Error in money transfer route, full error - ', err);
+    await session.abortTransaction();
+    return res
+      .status(500)
+      .json({ message: 'An error occurred during the transfer' });
   }
 });
 
