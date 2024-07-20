@@ -3,7 +3,6 @@ const router = require('./routes/index');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const authCheck = require('./middleware');
 
 const app = express();
 const PORT = 3000;
@@ -16,7 +15,7 @@ app.use(bodyParser.json());
 
 app.use('/api/v1', router);
 
-app.get('/', authCheck, (req, res) => {
+app.get('/', (req, res) => {
   res.status(200).send('<h1>Server is active</h1>')
 })
 

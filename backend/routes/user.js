@@ -3,7 +3,7 @@ const router = express.Router();
 const { z } = require('zod');
 const { User, Account } = require('../db');
 const jwt = require('jsonwebtoken');
-const authCheck = require('../middleware');
+const authCheck = require('../authMiddleware');
 require('dotenv').config();
 
 
