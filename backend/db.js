@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { model, Schema } = require('mongoose');
+const { model, Schema } = mongoose;
 require('dotenv').config();
 
 // Database connection
