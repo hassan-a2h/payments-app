@@ -64,13 +64,13 @@ router.post("/signin", async (req, res) => {
 
   if (!user) {
     return res.status(400).send({
-      message: "User does not exist",
+      message: "Invalid credentials",
     });
   }
 
   if (user.password !== password) {
     return res.status(400).send({
-      message: "Incorrect password",
+      message: "Invalid credentials",
     });
   }
 
@@ -80,9 +80,10 @@ router.post("/signin", async (req, res) => {
 
   res.cookie("Authorization", "Bearer " + token, { httpOnly: true });
 
-  res
-    .status(200)
-    .send({ message: "User signed in successfully", token: token });
+  res.status(200).send({
+    message: "User signed in successfully",
+    userId: user._id,
+  });
 });
 
 router.post("/signup", async (req, res) => {

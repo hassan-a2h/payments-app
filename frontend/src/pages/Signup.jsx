@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Signup() {
   const [inputs, setInputs] = useState({
@@ -42,7 +42,7 @@ function Signup() {
         navigate("/signin");
       }
     } catch (error) {
-      alert(error.response.data);
+      alert("Could not complete registration");
     }
   }
 
@@ -145,9 +145,9 @@ function Signup() {
 
           <div className="mt-4 flex justify-center">
             <p>Already have an account?</p>
-            <a href="/signin" className="ml-1 underline">
+            <Link to="/signin" className="ml-1 underline">
               Login
-            </a>
+            </Link>
           </div>
         </div>
       </div>

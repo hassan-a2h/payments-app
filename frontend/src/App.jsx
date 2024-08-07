@@ -5,29 +5,30 @@ import Signup from "./pages/Signup";
 import Send from "./pages/Send";
 
 function App() {
-
   const routes = createBrowserRouter([
     {
-      path: '/',
+      path: "/",
       element: <Dashboard />,
     },
     {
-      path: '/signin',
+      path: "/signin",
       element: <Signin />,
     },
     {
-      path: '/signup',
+      path: "/signup",
       element: <Signup />,
     },
     {
-      path: '/send',
+      path: "/send",
       element: <Send />,
-    }
+    },
+    {
+      path: "/dashboard",
+      element: <Dashboard />,
+    },
   ]);
 
-  return (
-    <RouterProvider router={routes} />
-  )
+  return <RouterProvider router={routes} />;
 }
 
 export default App;
