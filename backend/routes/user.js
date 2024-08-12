@@ -83,6 +83,15 @@ router.post("/signin", async (req, res) => {
   res.status(200).send({
     message: "User signed in successfully",
     userId: user._id,
+    userName: user.name,
+  });
+});
+
+router.post("/signout", async (req, res) => {
+  res.clearCookie("Authorization");
+
+  res.status(200).send({
+    message: "User signed out successfully",
   });
 });
 
