@@ -1,24 +1,24 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 function authMiddleware(req, res, next) {
+  console.log("authMiddleware, req.cookies:", req?.cookies["Authorization"]);
+
   if (!req.cookies.Authorization) {
     return res.status(401).send({
-      message: 'Access denied'
+      message: "Access denied",
     });
   }
 
-  const token = req.cookies.Authorization.split(' ')[1];
-  
-  const userId = jwt.verify(token, process.env.JWT_SECRET);
+  const token = req.cookies.Authorization.split(" ")[1];
 
-  if (!userId) {
-    return res.status(401).send({
-      message: 'Invalid access token'
-    });
+  try {
+    const { id } = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch (error) {
+    console.error("authMiddleware, error:", error);
+    return res.status(401).json({ message: "Invalid token" });
   }
-
-  next();
 }
 
 module.exports = authMiddleware;
