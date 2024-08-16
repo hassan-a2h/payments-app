@@ -23,11 +23,16 @@ function Signin() {
     try {
       const response = await axios.post(
         import.meta.env.VITE_BACKEND_URL + "/api/v1/user/signin",
-        inputs
+        inputs,
+        {
+          withCredentials: true,
+        }
       );
-      const { userId } = response.data;
+      const { userId, userName } = response.data;
+      console.log("Signin response - ", response);
       localStorage.setItem("userId", userId);
-      navigate("/dashboard");
+      localStorage.setItem("userName", userName);
+      navigate("/");
     } catch (error) {
       console.log(error);
       alert(`${error.response.data.message}`);
@@ -39,7 +44,7 @@ function Signin() {
       <div className="h-screen h-min-content w-screen w-min-content flex flex-row items-center justify-center bg-gray-500 pointer-events-none">
         <div className="h-min-50 w-min-20 w-max-content px-4 py-8 bg-slate-50 rounded-lg border border-1 border-slate-400 flex flex-col justify-center shadow-xl pointer-events-auto">
           <div className="mb-5 flex justify-center">
-            <h1 className="text-3xl font-bold font-sans">Sign Up</h1>
+            <h1 className="text-3xl font-bold font-sans">Sign In</h1>
           </div>
 
           <form
