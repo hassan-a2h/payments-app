@@ -78,7 +78,13 @@ router.post("/signin", async (req, res) => {
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
-  res.cookie("Authorization", "Bearer " + token, { httpOnly: true });
+  res.cookie("Authorization", "Bearer " + token, {
+    httpOnly: true,
+    path: "/",
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+
+  console.log(res.getHeader("Set-Cookie"));
 
   res.status(200).send({
     message: "User signed in successfully",
