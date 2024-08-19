@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useContext } from "react";
 import axios from "axios";
+import { BalanceContext, BalanceProvider } from "../context/BalanceContext";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -12,8 +13,10 @@ function Dashboard() {
     <div className="">
       <Header userName={userName} />
       <hr />
-      <Balance />
-      <Users />
+      <BalanceProvider>
+        <Balance />
+        <Users />
+      </BalanceProvider>
     </div>
   );
 }
@@ -33,64 +36,146 @@ function Header({ userName }) {
 }
 
 function Balance() {
-  const [balance, setBalance] = useState(null);
-
-  useEffect(() => {
-    async function getBalance() {
-      try {
-        const response = await axios.get("/api/v1/account/balance", {
-          withCredentials: true,
-        });
-
-        console.log("Dashboard component. b alance response - ", response);
-
-        setBalance(response.data.balance);
-      } catch (error) {
-        console.error(
-          "Dashboard component. error fetching balance... full error - ",
-          error
-        );
-      }
-    }
-
-    getBalance();
-  }, []);
+  const { balance } = useContext(BalanceContext);
 
   return <div className="p-4">Your Balance: {balance}</div>;
 }
 
 function Users() {
+  const [users, setUsers] = useState([]);
+
   return (
     <div>
-      <SearchUsers />
-      <DisplayUsers />
+      <SearchUsers setUsers={setUsers} />
+      <DisplayUsers users={users} />
     </div>
   );
 }
 
-function SearchUsers() {
+function SearchUsers({ setUsers }) {
+  const handleInputChange = async (e) => {
+    const searchTerm = e.target.value;
+
+    if (!searchTerm) {
+      setUsers([]);
+      return;
+    }
+
+    const response = await axios.get(`/api/v1/user/bulk?email=${searchTerm}`, {
+      withCredentials: true,
+    });
+
+    response?.data?.users?.length > 0
+      ? setUsers(response?.data.users)
+      : setUsers([]);
+  };
+
   return (
     <div>
       <input
         type="text"
         placeholder="Search users..."
+        onChange={handleInputChange}
         className="border border-1 border-slate-600 mx-4 p-1 pl-2 w-1/4 rounded-lg box-content"
       />
     </div>
   );
 }
 
-function DisplayUsers() {
+function DisplayUsers({ users }) {
+  const [openTransferModal, setOpenTransferModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+
   return (
-    <ul className="list-none flex flex-col p-4 gap-2">
-      {[0, 1, 2].map((i, index) => (
-        <li key={index} className="flex flex-row justify-between">
-          <p>UserName</p>
-          <button className="text-slate-200 bg-slate-800 px-3 py-1 rounded-lg">
-            Send Money
-          </button>
-        </li>
-      ))}
-    </ul>
+    <>
+      {users?.length === 0 && <p className="p-4">No users found</p>}
+
+      {users?.length > 0 && (
+        <ul className="list-none flex flex-col p-4 gap-2">
+          {users.map((user) => (
+            <>
+              <li key={user._id} className="flex flex-row justify-between">
+                <p>{user.name}</p>
+                <div className="flex flex-row gap-4">
+                  {openTransferModal && selectedUserId === user._id && (
+                    <p
+                      onClick={() => {
+                        setOpenTransferModal(false);
+                        setSelectedUserId(null);
+                      }}
+                      className="px-3 border border-slate-400 rounded-full"
+                    >
+                      x
+                    </p>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSelectedUserId(user._id);
+                      setOpenTransferModal(true);
+                    }}
+                    className="text-slate-200 bg-slate-800 px-3 py-1 rounded-lg"
+                  >
+                    Transfer
+                  </button>
+                </div>
+              </li>
+              {openTransferModal && selectedUserId === user._id && (
+                <SendMoney userId={selectedUserId} />
+              )}
+            </>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
+function SendMoney({ userId }) {
+  const { balance, updateBalance } = useContext(BalanceContext);
+  const [transferAmount, setTransferAmount] = useState(0);
+
+  const handleSendMoney = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        "https://localhost:3000/api/v1/account/transfer",
+        {
+          amount: transferAmount,
+          user: userId,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.statusText == "OK") {
+        updateBalance(balance - transferAmount);
+      }
+    } catch (error) {
+      console.error("Dashboard component, error sending money", error);
+    }
+
+    setTransferAmount(0);
+  };
+
+  return (
+    <div className="w-screen h-10 w-min-100 flex justify-center gap-2">
+      <form onSubmit={handleSendMoney}>
+        <input
+          type="number"
+          name="amount"
+          value={transferAmount}
+          min={1}
+          className="w-60 border border-2 border-slate-300 rounded-lg pl-2 mr-2"
+        />
+        <button
+          type="submit"
+          className="text-slate-200 bg-slate-800 px-3 py-1 rounded-lg"
+        >
+          Send
+        </button>
+      </form>
+    </div>
   );
 }
