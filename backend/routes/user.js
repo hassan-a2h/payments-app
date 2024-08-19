@@ -157,7 +157,7 @@ router.get("/bulk", authCheck, async (req, res) => {
 
   console.log("query:", query);
 
-  const users = await User.find(query);
+  const users = await User.find(query).select("name email");
 
   if (users.length > 0) {
     return res.status(200).send({ users });

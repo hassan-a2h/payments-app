@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
-const { startSession } = require("mongoose");
+const mongoose = require("mongoose");
+const { startSession } = mongoose;
 require("dotenv").config();
 
 const { Account } = require("../db");
